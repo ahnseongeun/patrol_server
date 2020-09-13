@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import requests
 import math
 import os
 import random
@@ -67,8 +68,9 @@ class MyApp(QWidget):
             print("target_found!!!!!!!!!!!!!!")
        #     search_flag = False
         else:        
-            cctv=[3,5,6,9]  
+            cctv=[3,7,8,9]  
             if buttonReply == QMessageBox.Yes:
+                testmessage()
                 print('Yes clicked.')
             elif buttonReply == QMessageBox.Save:
                 print('Save clicked.')
@@ -375,7 +377,7 @@ def search(start,cctv):
     global arr 
     global patrol_point_list 
     global finish_point
-    falg = False
+    flag = False
     if  start in cctv:
         cctv.remove(start)
         flag = True
@@ -416,17 +418,20 @@ def search(start,cctv):
     visited = [False,False,False,False,False,False,False,False,False,False]   
 
     print("finish point: "+str(finish_point))  
-    # rospy.Publisher("/move_base_simple/goal",PoseStamped,queue_size=1)
-    # bag = rosbag.Bag("/home/ahn/owayeol/map20/path-2/waypoint%d.bag" % finish_point)
-    # goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
-    # goal = PoseStamped()
-    # for topic, msg, t in bag.read_messages(topics=[]):
-    #     goal.header.stamp = rospy.Time.now()
-    #     goal.header.frame_id = "map"
-    #     goal.pose=msg.pose.pose
-    #     goal_publisher.publish(goal)
+    rospy.Publisher("robot3/move_base_simple/goal",PoseStamped,queue_size=1)
+    #bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint%d.bag" % finish_point)
+    bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint10.bag")
+    goal_publisher = rospy.Publisher('robot3/move_base_simple/goal', PoseStamped, queue_size=1)
+    goal = PoseStamped()
+    for topic, msg, t in bag.read_messages(topics=[]):
+        goal.header.stamp = rospy.Time.now()
+        goal.header.frame_id = "map"
+        goal.pose=msg.pose.pose
+        goal_publisher.publish(goal)
     if flag == True:
         patrol_point_list.remove(start)
+    if finish_point in patrol_point_list:
+        patrol_point_list.remove(finish_point)    
 
     print("patrol points:"+str(patrol_point_list)) 
     return patrol_point_list
@@ -438,13 +443,13 @@ def search_nearest_position(waypoints):
         global stat
         stat = 0
         go_point = 0
-        rospy.Publisher("/move_base_simple/goal",PoseStamped,queue_size=1)
+        rospy.Publisher("/robot2/move_base_simple/goal",PoseStamped,queue_size=1)
         list_length = len(waypoints)
         for j in range(1,list_length+1):
             min = 99999
             for i in waypoints:
-                bag = rosbag.Bag("/home/ahn/owayeol/map20/path-2/waypoint%d.bag" % i)
-                goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
+                bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint%d.bag" % i)
+                goal_publisher = rospy.Publisher('/robot2/move_base_simple/goal', PoseStamped, queue_size=1)
                 goal = PoseStamped()
                 for topic, msg, t in bag.read_messages(topics=[]):
                     goal.header.stamp = rospy.Time.now()
@@ -452,16 +457,16 @@ def search_nearest_position(waypoints):
                     goal.pose=msg.pose.pose
                     goal_publisher.publish(goal)
                     time.sleep(0.5)
-                    rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
-                    stop_publisher = rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
+                    rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
+                    stop_publisher = rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
                     stop_publisher.publish()
                     stop_publisher.publish()
                     time.sleep(0.5)    
                 if min > distance :
                     min = distance 
                     go_point = i
-            bag = rosbag.Bag("/home/ahn/owayeol/map20/path-2/waypoint%d.bag" % go_point)        
-            goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
+            bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint%d.bag" % go_point)        
+            goal_publisher = rospy.Publisher('/robot2/move_base_simple/goal', PoseStamped, queue_size=1)
             goal = PoseStamped()
             for topic, msg, t in bag.read_messages(topics=[]):
                 goal.header.stamp = rospy.Time.now()
@@ -482,19 +487,19 @@ def robot_first_nav():
     global stat
     global goal_publisher
     print("1 start")
-    rospy.Publisher("/move_base_simple/goal",PoseStamped,queue_size=1)
+    rospy.Publisher("/robot2/move_base_simple/goal",PoseStamped,queue_size=1)
     #goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
     goal = PoseStamped()
     goal.header.stamp =rospy.Time.now()
     goal.header.frame_id = "map"
 
-    goal.pose.position.x= 4.5047826767
-    goal.pose.position.y= 4.8954539299
+    goal.pose.position.x= 4.02384757996
+    goal.pose.position.y= 4.50621032715
     goal.pose.position.z= 0.0
     goal.pose.orientation.x= 0.0
     goal.pose.orientation.y= 0.0
-    goal.pose.orientation.z= 0.696554113966
-    goal.pose.orientation.w= 0.717504262229
+    goal.pose.orientation.z= 0.689883018156
+    goal.pose.orientation.w= 0.723920866712
     goal_publisher.publish(goal)
     print("1 end")
     while stat != 3 :
@@ -582,10 +587,10 @@ def search_start_position():
         stat = 0
         start_position = 1
         min = 99999
-        rospy.Publisher("/move_base_simple/goal",PoseStamped,queue_size=1)
+        rospy.Publisher("/robot2/move_base_simple/goal",PoseStamped,queue_size=1)
         for i in range(1,waypoint_count+1):
-            bag = rosbag.Bag("/home/ahn/owayeol/map20/path-2/waypoint%d.bag" % i)
-            goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
+            bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint%d.bag" % i)
+            goal_publisher = rospy.Publisher('/robot2/move_base_simple/goal', PoseStamped, queue_size=1)
             goal = PoseStamped()
             for topic, msg, t in bag.read_messages(topics=[]):
                 goal.header.stamp = rospy.Time.now()
@@ -593,8 +598,8 @@ def search_start_position():
                 goal.pose=msg.pose.pose
                 goal_publisher.publish(goal)
                 time.sleep(0.5)
-                rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
-                stop_publisher = rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
+                rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
+                stop_publisher = rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
                 stop_publisher.publish()
                 stop_publisher.publish()
                 time.sleep(0.5)    
@@ -605,8 +610,8 @@ def search_start_position():
                 start_position = i  
             print("start_position: %d"%start_position)     
 
-        bag = rosbag.Bag("/home/ahn/owayeol/map20/path-2/waypoint%d.bag" % start_position)
-        goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
+        bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint%d.bag" % start_position)
+        goal_publisher = rospy.Publisher('/robot2/move_base_simple/goal', PoseStamped, queue_size=1)
         goal = PoseStamped()
         for topic, msg, t in bag.read_messages(topics=[]):
             goal.header.stamp = rospy.Time.now()
@@ -632,9 +637,9 @@ def search_start():
         global flag10
         #print("hi")
         #rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
-        rospy.Publisher("/move_base_simple/goal",PoseStamped,queue_size=1)
-        bag = rosbag.Bag("/home/ahn/owayeol/map20/path-2/waypoint14.bag")
-        goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
+        rospy.Publisher("/robot2/move_base_simple/goal",PoseStamped,queue_size=1)
+        bag = rosbag.Bag("/home/ahn/owayeol/map21/path-2/waypoint14.bag")
+        goal_publisher = rospy.Publisher('/robot2/move_base_simple/goal', PoseStamped, queue_size=1)
         goal = PoseStamped()
         #print(bag)
         for topic, msg, t in bag.read_messages(topics=[]):
@@ -647,8 +652,8 @@ def search_start():
             goal_publisher.publish(goal)
             #print(goal)
             time.sleep(0.2)
-        rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
-        stop_publisher = rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
+        rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
+        stop_publisher = rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
         stop_publisher.publish()
         stop_publisher.publish()
         time.sleep(3)    
@@ -665,13 +670,18 @@ def meter(data):
 def search_stop():
     global flag10
     print("sadf")
-    rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
-    stop_publisher = rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)
+    rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
+    stop_publisher = rospy.Publisher('/robot2/move_base/cancel',GoalID, queue_size=1)
     stop_publisher.publish()
     flag10 = False
 
 def tttt(data):
-    print(data.object)   
+    print(data.object) 
+
+def testmessage():
+    obj="person"
+    target_url = "https://maker.ifttt.com/trigger/targetFind/with/key/dyNrf2Ttd8gE-vU0rR6vap"
+    requests.post(target_url,data={"value1" : obj})
 
 """
 def change_robot(data):
@@ -714,6 +724,7 @@ def Warningg(data):
 """
 if __name__ == '__main__':
     global rb_num
+    global flag11
     rospy.init_node('PatrolServer',anonymous=True)
     print("start!!!!!!")
     rospy.Subscriber("/test",Meter,meter,queue_size=1)
@@ -722,9 +733,10 @@ if __name__ == '__main__':
     # cctv=[5,7,8,9]  
     # search(start,cctv)
     rospy.Subscriber("/trigger",Trigger,ALERT)     
-    rospy.Subscriber('/move_base/result', MoveBaseActionResult, arriverobot)          
-    goal_publisher = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)  
-    rospy.Publisher('/move_base/cancel',GoalID, queue_size=1)        
+    rospy.Subscriber('/robot2/move_base/result', MoveBaseActionResult, arriverobot)     
+    rospy.Publisher("robot3/move_base_simple/goal",PoseStamped,queue_size=1)     
+    goal_publisher = rospy.Publisher('robot2/move_base_simple/goal', PoseStamped, queue_size=1)  
+    rospy.Publisher('robot2/move_base/cancel',GoalID, queue_size=1)        
     #rospy.Subscriber("/darknet_ros/bounding_boxes",BoundingBoxes,ALERT)
     #os.chdir('/home/pjh/bag_dir/robot3')
     #os.system("rosbag record /cv_camera/image_raw/compressed &")  
